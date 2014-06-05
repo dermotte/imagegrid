@@ -16,6 +16,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.*;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -48,6 +49,7 @@ public class ImageGridActivity extends Activity {
     private int currentGridSize = 0;
     private boolean customGrid = false;
     private boolean showEdges = false;
+    private boolean isProcessing = true;
     GridDialog d;
     private int customX = 3, customY = 4;
     private Point displaySize;
@@ -57,6 +59,8 @@ public class ImageGridActivity extends Activity {
             System.err.println("Init error!");
         }
     }
+
+    private ImageButton buttonShowEdges;
 
 
     /**
@@ -103,11 +107,11 @@ public class ImageGridActivity extends Activity {
                 }
             }
         });
-        ImageButton buttonShowEdges = (ImageButton) findViewById(R.id.button_show_edges);
+        buttonShowEdges = (ImageButton) findViewById(R.id.button_show_edges);
         buttonShowEdges.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
-                if (bitmap != null) {
+                if (bitmap != null && !isProcessing) {
                     showEdges = !showEdges;
                     reDrawImage();
                 }
@@ -120,6 +124,9 @@ public class ImageGridActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == RESULT_LOAD_IMAGE && resultCode == RESULT_OK && null != data) {
+//            buttonShowEdges.setEnabled(false);
+            showEdges = false;
+            isProcessing = true;
             Uri selectedImage = data.getData();
             String[] filePathColumn = {MediaStore.Images.Media.DATA};
 
@@ -138,51 +145,16 @@ public class ImageGridActivity extends Activity {
                 bitmap = BitmapFactory.decodeFile(picturePath, options);
                 float scale = (float) Math.max(displaySize.x, displaySize.y) / Math.max(bitmap.getWidth(), bitmap.getHeight());
                 if (scale < 1f) bitmap = Bitmap.createScaledBitmap(bitmap, (int) (scale * bitmap.getWidth()), (int) (scale * bitmap.getHeight()), true);
-                edges = bitmap.copy(Bitmap.Config.RGB_565, true);
-                Mat mat = new Mat();
-                Mat edges = new Mat();
-                Utils.bitmapToMat(bitmap, mat);
-//                orig = mat.clone();
-                // convert to gray
-                Imgproc.cvtColor(mat, edges, Imgproc.COLOR_BGR2GRAY);
-                // prepare for histogram and determine median for canny ...
-                LinkedList<Mat> matList = new LinkedList<Mat>();
-                matList.add(mat);
-                MatOfInt channels = new MatOfInt(0);
-                Mat hist = new Mat();
-                MatOfInt histSize = new MatOfInt(256);
-                MatOfFloat ranges = new MatOfFloat(0f, 256f);
-                Imgproc.calcHist(matList, channels, new Mat(), hist, histSize, ranges);
-                double medianVal = ((double) (mat.cols() * mat.rows())) / 2d;
-                double sum = 0;
-                double median = 0;
-                for (int i = 0; i < 256; i++) {
-                    sum += hist.get(i, 0)[0];
-                    if (sum < medianVal) median = (double) i;
-                }
-                channels.release();
-                hist.release();
-                ranges.release();
-                histSize.release();
-                // canny edge ...
-                Imgproc.Canny(edges, edges, median*0.66, median*1.33);
-                Core.bitwise_not(edges, edges);
-                Imgproc.cvtColor(edges, edges, Imgproc.COLOR_GRAY2RGB);
-                Mat tmp = new Mat();
-                Imgproc.cvtColor(mat, tmp, Imgproc.COLOR_RGBA2RGB);
-                Imgproc.bilateralFilter(tmp, mat, 12, 280, 280);
-//                Core.addWeighted(mat, 0.5, edges, 0.5, 0.0, mat);
-                Core.min(mat, edges, mat);
-                Utils.matToBitmap(mat, this.edges);
-                mat.release();
-                tmp.release();
-                edges.release();
+
                 if (bitmap.getWidth() > bitmap.getHeight()) {
                     Matrix matrix = new Matrix();
                     matrix.postRotate(90f);
                     bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-                    this.edges = Bitmap.createBitmap(this.edges, 0, 0, this.edges.getWidth(), this.edges.getHeight(), matrix, true);
                 }
+                this.edges = bitmap.copy(Bitmap.Config.RGB_565, true);
+
+                CannyTask ct = new CannyTask();
+                ct.execute();
 
                 buffer = bitmap.copy(Bitmap.Config.RGB_565, true);
                 c = new Canvas(buffer);
@@ -194,6 +166,61 @@ public class ImageGridActivity extends Activity {
 
         }
 
+
+    }
+
+    private class CannyTask extends AsyncTask<Void, Void, Void> {
+        protected Void doInBackground(Void... voids) {
+            Mat mat = new Mat();
+            Mat matEdges = new Mat();
+            Utils.bitmapToMat(bitmap, mat);
+//                orig = mat.clone();
+            // convert to gray
+            Imgproc.cvtColor(mat, matEdges, Imgproc.COLOR_BGR2GRAY);
+            // prepare for histogram and determine median for canny ...
+            LinkedList<Mat> matList = new LinkedList<Mat>();
+            matList.add(mat);
+            MatOfInt channels = new MatOfInt(0);
+            Mat hist = new Mat();
+            MatOfInt histSize = new MatOfInt(256);
+            MatOfFloat ranges = new MatOfFloat(0f, 256f);
+            Imgproc.calcHist(matList, channels, new Mat(), hist, histSize, ranges);
+            double medianVal = ((double) (mat.cols() * mat.rows())) / 2d;
+            double sum = 0;
+            double median = 0;
+            for (int i = 0; i < 256; i++) {
+                sum += hist.get(i, 0)[0];
+                if (sum < medianVal) median = (double) i;
+            }
+            channels.release();
+            hist.release();
+            ranges.release();
+            histSize.release();
+            // canny edge ...
+            Imgproc.Canny(matEdges, matEdges, median*0.66, median*1.33);
+            Core.bitwise_not(matEdges, matEdges);
+            Imgproc.cvtColor(matEdges, matEdges, Imgproc.COLOR_GRAY2RGB);
+            Mat tmp = new Mat();
+            Imgproc.cvtColor(mat, tmp, Imgproc.COLOR_RGBA2RGB);
+            Imgproc.bilateralFilter(tmp, mat, 12, 280, 280);
+//                Core.addWeighted(mat, 0.5, edges, 0.5, 0.0, mat);
+            Core.min(mat, matEdges, mat);
+            Utils.matToBitmap(mat, edges);
+            mat.release();
+            tmp.release();
+            matEdges.release();
+            isProcessing = false;
+            return null;
+        }
+
+        protected void onProgressUpdate() {
+//            setProgressPercent(progress[0]);
+        }
+
+        protected void onPostExecute() {
+            // showDialog("Downloaded " + result + " bytes");
+//            buttonShowEdges.setEnabled(true);
+        }
 
     }
 
