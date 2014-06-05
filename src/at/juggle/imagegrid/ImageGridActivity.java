@@ -18,25 +18,44 @@ import android.graphics.*;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.*;
+import org.opencv.android.OpenCVLoader;
+import org.opencv.android.Utils;
+import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfFloat;
+import org.opencv.core.MatOfInt;
+import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 /**
  * Android app for putting a grid on an image and displaying it.
- * @author Mathias Lux, mathias@juggle.at (c) 2014
  *
+ * @author Mathias Lux, mathias@juggle.at (c) 2014
  */
 public class ImageGridActivity extends Activity {
     private static int RESULT_LOAD_IMAGE = 1;
     private Bitmap bitmap = null;
+    private Bitmap edges = null;
     private Canvas c;
     private ArrayList<int[]> gridSize = new ArrayList<int[]>();
     private int currentGridSize = 0;
     private boolean customGrid = false;
+    private boolean showEdges = false;
     GridDialog d;
     private int customX = 3, customY = 4;
+    private Point displaySize;
+
+    static {
+        if (!OpenCVLoader.initDebug()) {
+            System.err.println("Init error!");
+        }
+    }
 
 
     /**
@@ -45,10 +64,12 @@ public class ImageGridActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         d = new GridDialog(this);
-        gridSize.add(new int[] {3,4});
-        gridSize.add(new int[] {4,6});
-        gridSize.add(new int[] {6,8});
-        gridSize.add(new int[] {9,12});
+        displaySize = new Point();
+        getWindowManager().getDefaultDisplay().getSize(displaySize);
+        gridSize.add(new int[]{3, 4});
+        gridSize.add(new int[]{4, 5});
+        gridSize.add(new int[]{5, 6});
+        gridSize.add(new int[]{6, 8});
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
@@ -66,8 +87,8 @@ public class ImageGridActivity extends Activity {
             public void onClick(View arg0) {
                 if (bitmap != null) {
                     customGrid = false;
-                    currentGridSize = (currentGridSize +1) % gridSize.size();
-                    drawImage(bitmap);
+                    currentGridSize = (currentGridSize + 1) % gridSize.size();
+                    reDrawImage();
                 }
             }
         });
@@ -78,6 +99,16 @@ public class ImageGridActivity extends Activity {
                 if (bitmap != null) {
                     customGrid = true;
                     d.show(getFragmentManager(), "tag");
+                }
+            }
+        });
+        ImageButton buttonShowEdges = (ImageButton) findViewById(R.id.button_show_edges);
+        buttonShowEdges.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+                if (bitmap != null) {
+                    showEdges = !showEdges;
+                    reDrawImage();
                 }
             }
         });
@@ -99,16 +130,49 @@ public class ImageGridActivity extends Activity {
             cursor.close();
             System.out.println("picturePath = " + picturePath);
             System.out.println("selectedImage.getPath() = " + selectedImage.getPath());
-            if (picturePath!=null) {
+            if (picturePath != null) {
                 bitmap = BitmapFactory.decodeFile(picturePath).copy(Bitmap.Config.RGB_565, true);
-                float scale = 1200f / Math.max(bitmap.getWidth(), bitmap.getHeight());
+                float scale = (float) Math.max(displaySize.x, displaySize.y) / Math.max(bitmap.getWidth(), bitmap.getHeight());
                 bitmap = Bitmap.createScaledBitmap(bitmap, (int) (scale * bitmap.getWidth()), (int) (scale * bitmap.getHeight()), true);
+                edges = bitmap.copy(Bitmap.Config.RGB_565, true);
+                Mat mat = new Mat();
+                Mat edges = new Mat();
+                Utils.bitmapToMat(bitmap, mat);
+//                orig = mat.clone();
+                // convert to gray
+                Imgproc.cvtColor(mat, edges, Imgproc.COLOR_BGR2GRAY);
+                // prepare for histogram and determine median for canny ...
+                LinkedList<Mat> matList = new LinkedList<Mat>();
+                matList.add(mat);
+                MatOfInt channels = new MatOfInt(0);
+                Mat hist = new Mat();
+                MatOfInt histSize = new MatOfInt(256);
+                MatOfFloat ranges = new MatOfFloat(0f, 256f);
+                Imgproc.calcHist(matList, channels, new Mat(), hist, histSize, ranges);
+                double medianVal = ((double) (mat.cols() * mat.rows())) / 2d;
+                double sum = 0;
+                double median = 0;
+                for (int i = 0; i < 256; i++) {
+                    sum += hist.get(i, 0)[0];
+                    if (sum < medianVal) median = (double) i;
+                }
+                // canny edge ...
+                Imgproc.Canny(edges, edges, median*0.66, median*1.33);
+                Core.bitwise_not(edges, edges);
+                Imgproc.cvtColor(edges, edges, Imgproc.COLOR_GRAY2RGB);
+                Mat tmp = new Mat();
+                Imgproc.cvtColor(mat, tmp, Imgproc.COLOR_RGBA2RGB);
+                Imgproc.bilateralFilter(tmp, mat, 12, 280, 280);
+                Core.addWeighted(mat, 0.5, edges, 0.5, 0.0, mat);
+                Core.max(mat, edges, mat);
+                Utils.matToBitmap(mat, this.edges);
                 if (bitmap.getWidth() > bitmap.getHeight()) {
                     Matrix matrix = new Matrix();
                     matrix.postRotate(90f);
                     bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+                    this.edges = Bitmap.createBitmap(this.edges, 0, 0, this.edges.getWidth(), this.edges.getHeight(), matrix, true);
                 }
-                drawImage(bitmap);
+                reDrawImage();
             } else {
                 bitmap = null;
                 Toast.makeText(getApplicationContext(), "Cannot open " + selectedImage.getPath() + "! Please use local images.", Toast.LENGTH_LONG).show();
@@ -122,14 +186,18 @@ public class ImageGridActivity extends Activity {
     public void setGrid() {
         String x = ((EditText) (d.getDialog().findViewById(R.id.numberCellsX))).getText().toString();
         String y = ((EditText) (d.getDialog().findViewById(R.id.numberCellsY))).getText().toString();
-        customX= Integer.parseInt(x);
+        customX = Integer.parseInt(x);
         customY = Integer.parseInt(y);
         customGrid = true;
         reDrawImage();
     }
 
     public void reDrawImage() {
-        drawImage(bitmap);
+        if (showEdges) {
+            drawImage(edges);
+        } else {
+            drawImage(bitmap);
+        }
     }
 
     private void drawImage(Bitmap bitmap) {
@@ -143,10 +211,10 @@ public class ImageGridActivity extends Activity {
     private void drawLines(Canvas canvas) {
         Paint paint = new Paint();
         paint.setARGB(128, 255, 255, 255);
-        paint.setStrokeWidth(3f);
+        paint.setStrokeWidth(5f);
         Paint paintBlack = new Paint();
-        paintBlack.setARGB(64, 0, 0, 0);
-        paintBlack.setStrokeWidth(1f);
+        paintBlack.setARGB(64, 0, 0, 64);
+        paintBlack.setStrokeWidth(3f);
         float y = c.getHeight();
         float x = c.getWidth();
         float stepsX = gridSize.get(currentGridSize)[0];
