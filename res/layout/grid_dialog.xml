@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/cells_in_x"
+                android:id="@+id/textView"
+                android:layout_alignBottom="@+id/numberCellsX" android:layout_alignParentEnd="true"/>
+        <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:ems="10"
+                android:id="@+id/numberCellsX" android:layout_alignParentStart="true"
+                android:layout_toLeftOf="@+id/textView" android:editable="true" android:text="3"/>
+        <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:ems="10"
+                android:id="@+id/numberCellsY" android:layout_below="@+id/numberCellsX"
+                android:layout_alignParentStart="true" android:layout_toLeftOf="@+id/textView" android:editable="true"
+                android:text="4"/>
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/cells_in_y"
+                android:id="@+id/textView2" android:layout_alignBottom="@+id/numberCellsY"
+                android:layout_alignEnd="@+id/textView"/>
+    </RelativeLayout>
+</LinearLayout>

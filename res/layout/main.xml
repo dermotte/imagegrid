@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="horizontal"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+        >
+    <RelativeLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+        <ImageView
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:id="@+id/imageView" android:layout_alignParentTop="true"
+                android:layout_alignParentStart="true" android:layout_above="@+id/relativeLayout"/>
+        <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true" android:layout_alignParentStart="true"
+                android:id="@+id/relativeLayout">
+            <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/open_image"
+                    android:id="@+id/button_open_image" android:src="@android:drawable/ic_menu_gallery"/>
+            <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Grid"
+                    android:id="@+id/button_grid" android:layout_alignParentTop="true"
+                    android:layout_alignParentEnd="true" android:src="@android:drawable/ic_dialog_dialer"/>
+            <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/button_add_grid" android:layout_centerVertical="true"
+                    android:layout_toLeftOf="@+id/button_grid" android:src="@android:drawable/ic_menu_add"/>
+        </RelativeLayout>
+    </RelativeLayout>
+</LinearLayout>
+

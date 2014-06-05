@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Artist Grid</string>
+    <string name="open_image">Öffne Bild ...</string>
+    <string name="save">Anwenden</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="cells_in_x">Zellen X</string>
+    <string name="cells_in_y">Zellen Y</string>
+</resources>
