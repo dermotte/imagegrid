@@ -14,7 +14,8 @@ https://play.google.com/store/apps/details?id=at.juggle.imagegrid
 
 How to compile it
 -----------------
-Create a Android project in a IDE of your choice and use the source and the res/* provided.
+Create a Android project in a IDE of your choice and use the source and the res/* provided. Make sure you have the OpenCV
+Android library installed or referenced (ie. as a module in IDEA or Eclipse). Also, copy the native libs to the libs dir.
 
 License
 -------

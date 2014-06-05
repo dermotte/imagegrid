@@ -42,6 +42,7 @@ public class ImageGridActivity extends Activity {
     private static int RESULT_LOAD_IMAGE = 1;
     private Bitmap bitmap = null;
     private Bitmap edges = null;
+    private Bitmap buffer = null;
     private Canvas c;
     private ArrayList<int[]> gridSize = new ArrayList<int[]>();
     private int currentGridSize = 0;
@@ -128,12 +129,15 @@ public class ImageGridActivity extends Activity {
             cursor.moveToFirst();
             String picturePath = cursor.getString(columnIndex);
             cursor.close();
-            System.out.println("picturePath = " + picturePath);
-            System.out.println("selectedImage.getPath() = " + selectedImage.getPath());
+            Log.i("grid", "picturePath = " + picturePath);
+            Log.i("grid", "selectedImage.getPath() = " + selectedImage.getPath());
             if (picturePath != null) {
-                bitmap = BitmapFactory.decodeFile(picturePath).copy(Bitmap.Config.RGB_565, true);
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inPurgeable = true;
+                options.inMutable = true;
+                bitmap = BitmapFactory.decodeFile(picturePath, options);
                 float scale = (float) Math.max(displaySize.x, displaySize.y) / Math.max(bitmap.getWidth(), bitmap.getHeight());
-                bitmap = Bitmap.createScaledBitmap(bitmap, (int) (scale * bitmap.getWidth()), (int) (scale * bitmap.getHeight()), true);
+                if (scale < 1f) bitmap = Bitmap.createScaledBitmap(bitmap, (int) (scale * bitmap.getWidth()), (int) (scale * bitmap.getHeight()), true);
                 edges = bitmap.copy(Bitmap.Config.RGB_565, true);
                 Mat mat = new Mat();
                 Mat edges = new Mat();
@@ -156,6 +160,10 @@ public class ImageGridActivity extends Activity {
                     sum += hist.get(i, 0)[0];
                     if (sum < medianVal) median = (double) i;
                 }
+                channels.release();
+                hist.release();
+                ranges.release();
+                histSize.release();
                 // canny edge ...
                 Imgproc.Canny(edges, edges, median*0.66, median*1.33);
                 Core.bitwise_not(edges, edges);
@@ -163,15 +171,21 @@ public class ImageGridActivity extends Activity {
                 Mat tmp = new Mat();
                 Imgproc.cvtColor(mat, tmp, Imgproc.COLOR_RGBA2RGB);
                 Imgproc.bilateralFilter(tmp, mat, 12, 280, 280);
-                Core.addWeighted(mat, 0.5, edges, 0.5, 0.0, mat);
-                Core.max(mat, edges, mat);
+//                Core.addWeighted(mat, 0.5, edges, 0.5, 0.0, mat);
+                Core.min(mat, edges, mat);
                 Utils.matToBitmap(mat, this.edges);
+                mat.release();
+                tmp.release();
+                edges.release();
                 if (bitmap.getWidth() > bitmap.getHeight()) {
                     Matrix matrix = new Matrix();
                     matrix.postRotate(90f);
                     bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
                     this.edges = Bitmap.createBitmap(this.edges, 0, 0, this.edges.getWidth(), this.edges.getHeight(), matrix, true);
                 }
+
+                buffer = bitmap.copy(Bitmap.Config.RGB_565, true);
+                c = new Canvas(buffer);
                 reDrawImage();
             } else {
                 bitmap = null;
@@ -181,6 +195,29 @@ public class ImageGridActivity extends Activity {
         }
 
 
+    }
+
+    public static int calculateInSampleSize(
+            BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        // Raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) > reqHeight
+                    && (halfWidth / inSampleSize) > reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+
+        return inSampleSize;
     }
 
     public void setGrid() {
@@ -202,13 +239,13 @@ public class ImageGridActivity extends Activity {
 
     private void drawImage(Bitmap bitmap) {
         ImageView imageView = (ImageView) findViewById(R.id.imageView);
-        Bitmap toDraw = bitmap.copy(Bitmap.Config.RGB_565, true);
-        c = new Canvas(toDraw);
-        drawLines(c);
-        imageView.setImageBitmap(toDraw);
+//        Bitmap toDraw = bitmap.copy(Bitmap.Config.RGB_565, true);
+        c.drawBitmap(bitmap, 0, 0, new Paint());
+        drawLines();
+        imageView.setImageBitmap(buffer);
     }
 
-    private void drawLines(Canvas canvas) {
+    private void drawLines() {
         Paint paint = new Paint();
         paint.setARGB(128, 255, 255, 255);
         paint.setStrokeWidth(5f);
