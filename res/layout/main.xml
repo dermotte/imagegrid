@@ -39,6 +39,11 @@
                     android:id="@+id/button_show_edges"
                     android:src="@android:drawable/ic_menu_mapmode" android:layout_alignParentTop="true"
                     android:layout_toLeftOf="@+id/button_add_grid"/>
+            <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/button_save_image" android:layout_centerVertical="true"
+                    android:layout_toRightOf="@+id/button_open_image" android:src="@android:drawable/ic_menu_save"/>
         </RelativeLayout>
     </RelativeLayout>
 </LinearLayout>

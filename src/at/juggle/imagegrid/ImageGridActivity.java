@@ -13,16 +13,17 @@ package at.juggle.imagegrid;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.*;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
-import android.widget.*;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.Toast;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
@@ -31,6 +32,9 @@ import org.opencv.core.MatOfFloat;
 import org.opencv.core.MatOfInt;
 import org.opencv.imgproc.Imgproc;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -117,6 +121,30 @@ public class ImageGridActivity extends Activity {
                 }
             }
         });
+        ImageButton buttonSaveImage = (ImageButton) findViewById(R.id.button_save_image);
+        buttonSaveImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+                if (buffer != null && !isProcessing) {
+                    // save edges file
+                    File directory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "artistgrid");
+                    if (!directory.exists()) directory.mkdirs();
+                    File toSave = new File(directory, "grid_"+(android.text.format.DateFormat.format("yyyy_MM_dd-hh_mm_ss", new java.util.Date()))+".png");
+                    try {
+                        FileOutputStream outStream = new FileOutputStream(toSave);
+                        buffer.compress(Bitmap.CompressFormat.PNG, 100, outStream);
+                        outStream.flush();
+                        outStream.close();
+                        Toast.makeText(getApplicationContext(), "Saved to " + directory + "!", Toast.LENGTH_LONG).show();
+                        MediaStore.Images.Media.insertImage(getContentResolver(),toSave.getAbsolutePath(),toSave.getName(),toSave.getName());
+                    }
+                    catch(Exception e) {
+                        e.printStackTrace();
+                        Toast.makeText(getApplicationContext(), "Save failed!", Toast.LENGTH_LONG).show();
+                    }
+                }
+            }
+        });
     }
 
     @Override
@@ -128,7 +156,13 @@ public class ImageGridActivity extends Activity {
             showEdges = false;
             isProcessing = true;
             Uri selectedImage = data.getData();
-            String[] filePathColumn = {MediaStore.Images.Media.DATA};
+            try {
+                bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
+            } catch (IOException e) {
+                e.printStackTrace();
+                Toast.makeText(getApplicationContext(), "Cannot open " + selectedImage.getPath() + "!", Toast.LENGTH_LONG).show();
+            }
+/*            String[] filePathColumn = {MediaStore.Images.Media.DATA};
 
             Cursor cursor = getContentResolver().query(selectedImage, filePathColumn, null, null, null);
 
@@ -142,9 +176,11 @@ public class ImageGridActivity extends Activity {
                 BitmapFactory.Options options = new BitmapFactory.Options();
                 options.inPurgeable = true;
                 options.inMutable = true;
-                bitmap = BitmapFactory.decodeFile(picturePath, options);
+                bitmap = BitmapFactory.decodeFile(picturePath, options); */
+            if (bitmap != null) {
                 float scale = (float) Math.max(displaySize.x, displaySize.y) / Math.max(bitmap.getWidth(), bitmap.getHeight());
-                if (scale < 1f) bitmap = Bitmap.createScaledBitmap(bitmap, (int) (scale * bitmap.getWidth()), (int) (scale * bitmap.getHeight()), true);
+                if (scale < 1f)
+                    bitmap = Bitmap.createScaledBitmap(bitmap, (int) (scale * bitmap.getWidth()), (int) (scale * bitmap.getHeight()), true);
 
                 if (bitmap.getWidth() > bitmap.getHeight()) {
                     Matrix matrix = new Matrix();
@@ -159,10 +195,11 @@ public class ImageGridActivity extends Activity {
                 buffer = bitmap.copy(Bitmap.Config.RGB_565, true);
                 c = new Canvas(buffer);
                 reDrawImage();
-            } else {
-                bitmap = null;
-                Toast.makeText(getApplicationContext(), "Cannot open " + selectedImage.getPath() + "! Please use local images.", Toast.LENGTH_LONG).show();
             }
+//            } else {
+//                bitmap = null;
+//                Toast.makeText(getApplicationContext(), "Cannot open " + selectedImage.getPath() + "! Please use local images.", Toast.LENGTH_LONG).show();
+//            }
 
         }
 
@@ -197,7 +234,7 @@ public class ImageGridActivity extends Activity {
             ranges.release();
             histSize.release();
             // canny edge ...
-            Imgproc.Canny(matEdges, matEdges, median*0.66, median*1.33);
+            Imgproc.Canny(matEdges, matEdges, median * 0.5, median * 1.0);
             Core.bitwise_not(matEdges, matEdges);
             Imgproc.cvtColor(matEdges, matEdges, Imgproc.COLOR_GRAY2RGB);
             Mat tmp = new Mat();
