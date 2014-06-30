@@ -14,11 +14,13 @@ package at.juggle.imagegrid;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.*;
+import android.graphics.Point;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -26,10 +28,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
-import org.opencv.core.Core;
-import org.opencv.core.Mat;
-import org.opencv.core.MatOfFloat;
-import org.opencv.core.MatOfInt;
+import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.File;
@@ -44,6 +43,10 @@ import java.util.LinkedList;
  * @author Mathias Lux, mathias@juggle.at (c) 2014
  */
 public class ImageGridActivity extends Activity {
+    static double p = 35;
+    static double t = 0.3;
+    static double phi = 7d;
+
     private static int RESULT_LOAD_IMAGE = 1;
     private Bitmap bitmap = null;
     private Bitmap edges = null;
@@ -209,11 +212,11 @@ public class ImageGridActivity extends Activity {
     private class CannyTask extends AsyncTask<Void, Void, Void> {
         protected Void doInBackground(Void... voids) {
             Mat mat = new Mat();
-            Mat matEdges = new Mat();
             Utils.bitmapToMat(bitmap, mat);
 //                orig = mat.clone();
             // convert to gray
-            Imgproc.cvtColor(mat, matEdges, Imgproc.COLOR_BGR2GRAY);
+//            Imgproc.cvtColor(mat, matEdges, Imgproc.COLOR_BGR2GRAY);
+            /*
             // prepare for histogram and determine median for canny ...
             LinkedList<Mat> matList = new LinkedList<Mat>();
             matList.add(mat);
@@ -239,13 +242,50 @@ public class ImageGridActivity extends Activity {
             Imgproc.cvtColor(matEdges, matEdges, Imgproc.COLOR_GRAY2RGB);
             Mat tmp = new Mat();
             Imgproc.cvtColor(mat, tmp, Imgproc.COLOR_RGBA2RGB);
-            Imgproc.bilateralFilter(tmp, mat, 12, 280, 280);
+            */
+            Mat tmp = new Mat();
+            Imgproc.cvtColor(mat, mat, Imgproc.COLOR_RGBA2RGB);
+            Imgproc.bilateralFilter(mat, tmp, 5, 120, 120);
 //                Core.addWeighted(mat, 0.5, edges, 0.5, 0.0, mat);
-            Core.min(mat, matEdges, mat);
-            Utils.matToBitmap(mat, edges);
+            Imgproc.cvtColor(tmp, mat, Imgproc.COLOR_RGBA2GRAY);
+            Mat tmp1 = new Mat();
+            Mat tmp2 = new Mat();
+            Imgproc.GaussianBlur(mat, tmp1, new Size(5,5), 0.5d);
+            Imgproc.GaussianBlur(mat, tmp2, new Size(5,5), 3.5d);
+            tmp1.convertTo(tmp1, CvType.CV_32F);
+            tmp2.convertTo(tmp2, CvType.CV_32F);
+            Core.multiply(tmp1, new Scalar((p + 1)/255d), tmp1);
+            Core.multiply(tmp2, new Scalar(p/255d), tmp2);
+            Core.subtract(tmp1, tmp2, mat);
+            for (int r = 0; r < mat.rows(); r++) {
+                for (int c = 0; c < mat.cols(); c++) {
+                    double[] d = mat.get(r,c);
+                    if (d[0] >= t) d[0] = 1d;
+                    else d[0] = (1+Math.tanh(phi*(d[0]-t)));
+                    for (int i = 0; i < d.length; i++) {
+                        d[i] = 255*d[0];
+                    }
+                    double[] k = tmp.get(r,c);
+                    if (255*d[0]<(k[0]+k[1]+k[2])/3) {
+                        for (int i = 0; i < k.length; i++) {
+                            k[i] = Math.max(255 * d[0], 0d);
+                        }
+                        tmp.put(r, c, k);
+                    }
+
+                }
+            }
+//            mat.convertTo(mat, 16);
+//            Imgproc.cvtColor(tmp, tmp, Imgproc.COLOR_RGBA2RGB);
+//            tmp.convertTo(tmp, CvType.CV_8UC3);
+//            Log.i("tag ...", " *** " + mat.type() + " vs. " + tmp.type());
+//            Core.min(mat, tmp, mat);
+
+            Utils.matToBitmap(tmp, edges);
             mat.release();
             tmp.release();
-            matEdges.release();
+            tmp1.release();
+            tmp2.release();
             isProcessing = false;
             return null;
         }
@@ -305,7 +345,8 @@ public class ImageGridActivity extends Activity {
         ImageView imageView = (ImageView) findViewById(R.id.imageView);
 //        Bitmap toDraw = bitmap.copy(Bitmap.Config.RGB_565, true);
         c.drawBitmap(bitmap, 0, 0, new Paint());
-        drawLines();
+        if (!(customGrid && (customX < 1 || customY < 1)))
+            drawLines();
         imageView.setImageBitmap(buffer);
     }
 
