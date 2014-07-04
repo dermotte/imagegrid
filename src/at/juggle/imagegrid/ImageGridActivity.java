@@ -247,16 +247,16 @@ public class ImageGridActivity extends Activity {
             Imgproc.cvtColor(mat, mat, Imgproc.COLOR_RGBA2RGB);
             Imgproc.bilateralFilter(mat, tmp, 5, 120, 120);
 //                Core.addWeighted(mat, 0.5, edges, 0.5, 0.0, mat);
-            Imgproc.cvtColor(tmp, mat, Imgproc.COLOR_RGBA2GRAY);
+            Imgproc.cvtColor(tmp, mat, Imgproc.COLOR_RGB2GRAY);
             Mat tmp1 = new Mat();
-            Mat tmp2 = new Mat();
+//            Mat tmp2 = new Mat();
             Imgproc.GaussianBlur(mat, tmp1, new Size(5,5), 0.5d);
-            Imgproc.GaussianBlur(mat, tmp2, new Size(5,5), 3.5d);
+            Imgproc.GaussianBlur(mat, mat, new Size(5,5), 3.5d);
             tmp1.convertTo(tmp1, CvType.CV_32F);
-            tmp2.convertTo(tmp2, CvType.CV_32F);
+            mat.convertTo(mat, CvType.CV_32F);
             Core.multiply(tmp1, new Scalar((p + 1)/255d), tmp1);
-            Core.multiply(tmp2, new Scalar(p/255d), tmp2);
-            Core.subtract(tmp1, tmp2, mat);
+            Core.multiply(mat, new Scalar(p/255d), mat);
+            Core.subtract(tmp1, mat, mat);
             for (int r = 0; r < mat.rows(); r++) {
                 for (int c = 0; c < mat.cols(); c++) {
                     double[] d = mat.get(r,c);
@@ -272,7 +272,6 @@ public class ImageGridActivity extends Activity {
                         }
                         tmp.put(r, c, k);
                     }
-
                 }
             }
 //            mat.convertTo(mat, 16);
@@ -285,7 +284,7 @@ public class ImageGridActivity extends Activity {
             mat.release();
             tmp.release();
             tmp1.release();
-            tmp2.release();
+//            tmp2.release();
             isProcessing = false;
             return null;
         }
