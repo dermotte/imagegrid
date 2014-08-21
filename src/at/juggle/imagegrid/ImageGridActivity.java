@@ -22,10 +22,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.Toast;
+import android.widget.*;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.*;
@@ -58,7 +55,8 @@ public class ImageGridActivity extends Activity {
     private boolean showEdges = false;
     private boolean isProcessing = true;
     GridDialog d;
-    private int customX = 3, customY = 4;
+    protected int customX = 3;
+    protected int customY = 4;
     private Point displaySize;
 
     static {
@@ -132,16 +130,15 @@ public class ImageGridActivity extends Activity {
                     // save edges file
                     File directory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "artistgrid");
                     if (!directory.exists()) directory.mkdirs();
-                    File toSave = new File(directory, "grid_"+(android.text.format.DateFormat.format("yyyy_MM_dd-hh_mm_ss", new java.util.Date()))+".png");
+                    File toSave = new File(directory, "grid_" + (android.text.format.DateFormat.format("yyyy_MM_dd-hh_mm_ss", new java.util.Date())) + ".png");
                     try {
                         FileOutputStream outStream = new FileOutputStream(toSave);
                         buffer.compress(Bitmap.CompressFormat.PNG, 100, outStream);
                         outStream.flush();
                         outStream.close();
                         Toast.makeText(getApplicationContext(), "Saved to " + directory + "!", Toast.LENGTH_LONG).show();
-                        MediaStore.Images.Media.insertImage(getContentResolver(),toSave.getAbsolutePath(),toSave.getName(),toSave.getName());
-                    }
-                    catch(Exception e) {
+                        MediaStore.Images.Media.insertImage(getContentResolver(), toSave.getAbsolutePath(), toSave.getName(), toSave.getName());
+                    } catch (Exception e) {
                         e.printStackTrace();
                         Toast.makeText(getApplicationContext(), "Save failed!", Toast.LENGTH_LONG).show();
                     }
@@ -181,7 +178,7 @@ public class ImageGridActivity extends Activity {
                 options.inMutable = true;
                 bitmap = BitmapFactory.decodeFile(picturePath, options); */
             if (bitmap != null) {
-                float scale = (float) Math.max(displaySize.x, displaySize.y) / Math.max(bitmap.getWidth(), bitmap.getHeight());
+                float scale = (float) Math.max(2 * displaySize.x / 3, 2 * displaySize.y / 3) / Math.max(bitmap.getWidth(), bitmap.getHeight());
                 if (scale < 1f)
                     bitmap = Bitmap.createScaledBitmap(bitmap, (int) (scale * bitmap.getWidth()), (int) (scale * bitmap.getHeight()), true);
 
@@ -245,28 +242,29 @@ public class ImageGridActivity extends Activity {
             */
             Mat tmp = new Mat();
             Imgproc.cvtColor(mat, mat, Imgproc.COLOR_RGBA2RGB);
-            Imgproc.bilateralFilter(mat, tmp, 5, 120, 120);
+            Imgproc.bilateralFilter(mat, tmp, 5, 250, 250);
 //                Core.addWeighted(mat, 0.5, edges, 0.5, 0.0, mat);
             Imgproc.cvtColor(tmp, mat, Imgproc.COLOR_RGB2GRAY);
+            Imgproc.equalizeHist(mat, mat);
             Mat tmp1 = new Mat();
 //            Mat tmp2 = new Mat();
-            Imgproc.GaussianBlur(mat, tmp1, new Size(5,5), 0.5d);
-            Imgproc.GaussianBlur(mat, mat, new Size(5,5), 3.5d);
+            Imgproc.GaussianBlur(mat, tmp1, new Size(5, 5), 0.5d);
+            Imgproc.GaussianBlur(mat, mat, new Size(5, 5), 3.5d);
             tmp1.convertTo(tmp1, CvType.CV_32F);
             mat.convertTo(mat, CvType.CV_32F);
-            Core.multiply(tmp1, new Scalar((p + 1)/255d), tmp1);
-            Core.multiply(mat, new Scalar(p/255d), mat);
+            Core.multiply(tmp1, new Scalar((p + 1) / 255d), tmp1);
+            Core.multiply(mat, new Scalar(p / 255d), mat);
             Core.subtract(tmp1, mat, mat);
             for (int r = 0; r < mat.rows(); r++) {
                 for (int c = 0; c < mat.cols(); c++) {
-                    double[] d = mat.get(r,c);
+                    double[] d = mat.get(r, c);
                     if (d[0] >= t) d[0] = 1d;
-                    else d[0] = (1+Math.tanh(phi*(d[0]-t)));
+                    else d[0] = (1 + Math.tanh(phi * (d[0] - t)));
                     for (int i = 0; i < d.length; i++) {
-                        d[i] = 255*d[0];
+                        d[i] = 255 * d[0];
                     }
-                    double[] k = tmp.get(r,c);
-                    if (255*d[0]<(k[0]+k[1]+k[2])/3) {
+                    double[] k = tmp.get(r, c);
+                    if (255 * d[0] < (k[0] + k[1] + k[2]) / 3) {
                         for (int i = 0; i < k.length; i++) {
                             k[i] = Math.max(255 * d[0], 0d);
                         }
@@ -286,6 +284,7 @@ public class ImageGridActivity extends Activity {
             tmp1.release();
 //            tmp2.release();
             isProcessing = false;
+            showEdges = true;
             return null;
         }
 
@@ -326,6 +325,18 @@ public class ImageGridActivity extends Activity {
     public void setGrid() {
         String x = ((EditText) (d.getDialog().findViewById(R.id.numberCellsX))).getText().toString();
         String y = ((EditText) (d.getDialog().findViewById(R.id.numberCellsY))).getText().toString();
+        double val = ((SeekBar) (d.getDialog().findViewById(R.id.edgeImportanceSeekbar))).getProgress();
+        double tau = ((SeekBar) (d.getDialog().findViewById(R.id.tauSeekbar))).getProgress();
+        tau = (tau - 50) / 100;
+        val = Math.floor(10d + val / 100d * 50d);
+        if (Math.abs(val - p) > 5 || Math.abs(tau - t) > 0.1) {
+            showEdges = false;
+            p = val;
+            t = tau;
+            CannyTask ct = new CannyTask();
+            isProcessing = true;
+            ct.execute();
+        }
         customX = Integer.parseInt(x);
         customY = Integer.parseInt(y);
         customGrid = true;

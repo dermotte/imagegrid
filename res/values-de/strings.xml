@@ -5,5 +5,5 @@
     <string name="save">Anwenden</string>
     <string name="cancel">Abbrechen</string>
     <string name="cells_in_x">Zellen X</string>
-    <string name="cells_in_y">Zellen Y</string>
+    <string name="cells_in_y">Zellen Y</string><string name="num_edges">Edge Importance</string>
 </resources>

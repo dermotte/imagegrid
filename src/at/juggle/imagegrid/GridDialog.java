@@ -18,6 +18,8 @@ import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.widget.EditText;
+import android.widget.SeekBar;
 
 /**
  * Android app for putting a grid on an image and displaying it.
@@ -51,7 +53,11 @@ public class GridDialog extends DialogFragment {
                         GridDialog.this.getDialog().cancel();
                     }
                 });
-        return builder.create();
+        AlertDialog alertDialog = builder.create();
+//        ((EditText) alertDialog.findViewById(R.id.numberCellsX)).setText("" + parent.customX);
+//        ((EditText) alertDialog.findViewById(R.id.numberCellsY)).setText("" + parent.customY);
+//        ((SeekBar) (alertDialog.findViewById(R.id.edgeImportanceSeekbar))).setProgress((int) ((ImageGridActivity.p - 10d)/50d*100d));
+        return alertDialog;
     }
 
 }
