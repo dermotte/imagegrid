@@ -80,6 +80,7 @@ public class ImageGridActivity extends Activity {
         gridSize.add(new int[]{4, 5});
         gridSize.add(new int[]{5, 6});
         gridSize.add(new int[]{6, 8});
+        gridSize.add(new int[]{0, 0});
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
@@ -153,6 +154,7 @@ public class ImageGridActivity extends Activity {
 
         if (requestCode == RESULT_LOAD_IMAGE && resultCode == RESULT_OK && null != data) {
 //            buttonShowEdges.setEnabled(false);
+
             showEdges = false;
             isProcessing = true;
             Uri selectedImage = data.getData();
@@ -178,7 +180,8 @@ public class ImageGridActivity extends Activity {
                 options.inMutable = true;
                 bitmap = BitmapFactory.decodeFile(picturePath, options); */
             if (bitmap != null) {
-                float scale = (float) Math.max(2 * displaySize.x / 3, 2 * displaySize.y / 3) / Math.max(bitmap.getWidth(), bitmap.getHeight());
+                float scale = (float) Math.max(displaySize.x, displaySize.y) / Math.max(bitmap.getWidth(), bitmap.getHeight());
+//                float scale = (float) Math.max(2 * displaySize.x / 3, 2 * displaySize.y / 3) / Math.max(bitmap.getWidth(), bitmap.getHeight());
                 if (scale < 1f)
                     bitmap = Bitmap.createScaledBitmap(bitmap, (int) (scale * bitmap.getWidth()), (int) (scale * bitmap.getHeight()), true);
 
@@ -353,6 +356,7 @@ public class ImageGridActivity extends Activity {
 
     private void drawImage(Bitmap bitmap) {
         ImageView imageView = (ImageView) findViewById(R.id.imageView);
+        imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
 //        Bitmap toDraw = bitmap.copy(Bitmap.Config.RGB_565, true);
         c.drawBitmap(bitmap, 0, 0, new Paint());
         if (!(customGrid && (customX < 1 || customY < 1)))

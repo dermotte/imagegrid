@@ -12,7 +12,8 @@
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:id="@+id/imageView" android:layout_alignParentTop="true"
-                android:layout_alignParentStart="true" android:layout_above="@+id/relativeLayout"/>
+                android:layout_alignParentStart="true" android:layout_above="@+id/relativeLayout"
+                android:src="@drawable/help" android:scaleType="fitXY"/>
         <RelativeLayout
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
