@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Artist Grid</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_save">Save image</string>
+    <string name="label_rows">Row lines</string>
+    <string name="label_cols">Column lines</string>
+    <string name="label_linewidth">Line thickness</string>
+    <string name="label_colorpicker">Color picker</string>
+    <string name="color">RGB color</string>
+    <string name="action_share">Share ...</string>
+    <string name="send_to">Send to ...</string>
+    <string name="settings_activity_label">Settings</string>
+    <string name="action_fullscreen">Full screen</string>
+    <string name="action_grid">Change grid</string>
+    <string name="action_filter">Posterize</string>
+    <string name="label_lineAlpha">Opaqueness (0-255)</string>
+</resources>

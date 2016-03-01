@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Artist Grid</string>
+    <string name="label_linewidth">Dicke der Linien</string>
+    <string name="action_save">Speichern</string>
+    <string name="action_settings">Einstellungen</string>
+    <string name="label_cols">Spaltenlinien</string>
+    <string name="label_rows">Zeilenlinien</string>
+    <string name="label_colorpicker">Farbwerte anzeigen</string>
+    <string name="color">Farbe in RGB</string>
+    <string name="action_share">Teilen ...</string>
+    <string name="send_to">Teilen ...</string>
+    <string name="settings_activity_label">Einstellungen</string>
+    <string name="action_fullscreen">Vollbild</string>
+    <string name="action_grid">Raster ändern</string>
+    <string name="action_filter">Comicfilter</string>
+    <string name="label_lineAlpha">Transparenz (0-255)</string>
+</resources>

@@ -1,5 +1,5 @@
-imagegrid
-=========
+Artist Grid
+===========
 
 A simple app for Android: Often artists need a grid for existing images to the proportions and perspective right.
 This small app does exactly that. A simple and free app for putting a grid on an existing photo. Grid size can be set.
@@ -14,13 +14,12 @@ https://play.google.com/store/apps/details?id=at.juggle.imagegrid
 
 How to compile it
 -----------------
-Create a Android project in a IDE of your choice and use the source and the res/* provided. Make sure you have the OpenCV
-Android library installed or referenced (ie. as a module in IDEA or Eclipse). Also, copy the native libs to the libs dir.
+Import into Android studio or use Gradle.
 
 License
 -------
 
-Copyright 2014 Mathias Lux, mathias@juggle.at
+Copyright 2014-2016 Mathias Lux, mathias@juggle.at
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
