@@ -32,10 +32,24 @@
         android:title="@string/action_fullscreen"
         android:icon="@android:drawable/ic_menu_search"
         app:showAsAction="never" />
-    <item
-        android:id="@+id/action_filter"
+    <item android:id="@+id/action_menu_filter"
         android:orderInCategory="100"
-        android:title="@string/action_filter"
+        android:title="@string/action_menu_filter"
         android:icon="@android:drawable/ic_menu_edit"
-        app:showAsAction="never" />
+        app:showAsAction="never">
+        <menu>
+        <item
+            android:id="@+id/action_filter_comic"
+            android:orderInCategory="100"
+            android:title="@string/action_filter_comic"
+            android:icon="@android:drawable/ic_menu_edit"
+            app:showAsAction="never" />
+        <item
+            android:id="@+id/action_filter_edges"
+            android:orderInCategory="100"
+            android:title="@string/action_filter_edges"
+            android:icon="@android:drawable/ic_menu_edit"
+            app:showAsAction="never" />
+        </menu>
+    </item>
 </menu>

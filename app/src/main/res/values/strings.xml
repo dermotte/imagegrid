@@ -12,6 +12,19 @@
     <string name="settings_activity_label">Settings</string>
     <string name="action_fullscreen">Full screen</string>
     <string name="action_grid">Change grid</string>
-    <string name="action_filter">Posterize</string>
-    <string name="label_lineAlpha">Opaqueness (0-255)</string>
+    <string name="action_filter_comic">Posterize</string>
+    <string name="action_filter_edges">Posterize</string>
+    <string name="label_lineAlpha">Opaqueness</string>
+    <string name="label_linecolor">Grid line color</string>
+    <string name="action_menu_filter">Filter</string>
+    <string-array name="colors_array">
+        <item>black</item>
+        <item>white</item>
+        <item>red</item>
+        <item>green</item>
+        <item>blue</item>
+        <item>cyan</item>
+        <item>magenta</item>
+        <item>yellow</item>
+    </string-array>
 </resources>

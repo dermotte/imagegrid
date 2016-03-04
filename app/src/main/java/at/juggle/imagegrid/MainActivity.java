@@ -51,12 +51,14 @@ public class MainActivity extends AppCompatActivity {
     public final static String PREFS_NAME = "PrefsFileArtistGrid";
     public final static String IMG_CACHED = "image.png";
     int rows, cols, lineWidth, alpha;
+    private int lineColor;
     boolean colorpicker;
     Bitmap buffer = null, original = null;
     private float maxImageSide = 1200;
 
     private ArrayList<int[]> gridSize = new ArrayList<int[]>();
     private int currentGridSizeIndex = 0;
+    int[] lineColors = new int[] {Color.BLACK, Color.WHITE, Color.RED, Color.GREEN, Color.BLUE, Color.CYAN, Color.MAGENTA, Color.YELLOW};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
         cols = settings.getInt("cols", 3);
         lineWidth = settings.getInt("lineWidth", 2);
         alpha = settings.getInt("lineAlpha", 128);
+        lineColor = settings.getInt("lineColor", 0);
         colorpicker = settings.getBoolean("colorpicker", false);
         TouchImageView view = (TouchImageView) findViewById(R.id.mainImageView);
         view.setMaxZoom(5f);
@@ -143,9 +146,11 @@ public class MainActivity extends AppCompatActivity {
             editor.commit();
 
             // paint ...
-            paintLines(original);
-        } else if (id == R.id.action_filter) {
-            applyFilters();
+            if (original!=null) paintLines(original);
+        } else if (id == R.id.action_filter_comic) {
+            if (original!=null) applyFilters(0);
+        } else if (id == R.id.action_filter_edges) {
+            if (original!=null) applyFilters(1);
         } else if (id == R.id.action_fullscreen) {
             // hide status bar
             View decorView = getWindow().getDecorView();
@@ -158,19 +163,21 @@ public class MainActivity extends AppCompatActivity {
             try {
 //                File outputDir = getApplicationContext().getCacheDir(); // context being the Activity pointer
 //                File outputFile = File.createTempFile("image", "jpeg", outputDir);
-                File directory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "artistgrid");
-                if (!directory.exists()) directory.mkdirs();
-                File outputFile = new File(directory, "grid_" + (android.text.format.DateFormat.format("yyyy_MM_dd-hh_mm_ss", new java.util.Date())) + ".jpg");
-                FileOutputStream outStream = new FileOutputStream(outputFile);
-                buffer.compress(Bitmap.CompressFormat.JPEG, 75, outStream);
-                outStream.flush();
-                outStream.close();
-                String uri = MediaStore.Images.Media.insertImage(getContentResolver(), outputFile.getAbsolutePath(), outputFile.getName(), outputFile.getName());
-                Intent sendIntent = new Intent();
-                sendIntent.setAction(Intent.ACTION_SEND);
-                sendIntent.setType("image/jpeg");
-                sendIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(outputFile));
-                startActivity(Intent.createChooser(sendIntent, getResources().getText(R.string.send_to)));
+                if (buffer!=null) {
+                    File directory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "artistgrid");
+                    if (!directory.exists()) directory.mkdirs();
+                    File outputFile = new File(directory, "grid_" + (android.text.format.DateFormat.format("yyyy_MM_dd-hh_mm_ss", new java.util.Date())) + ".jpg");
+                    FileOutputStream outStream = new FileOutputStream(outputFile);
+                    buffer.compress(Bitmap.CompressFormat.JPEG, 75, outStream);
+                    outStream.flush();
+                    outStream.close();
+                    String uri = MediaStore.Images.Media.insertImage(getContentResolver(), outputFile.getAbsolutePath(), outputFile.getName(), outputFile.getName());
+                    Intent sendIntent = new Intent();
+                    sendIntent.setAction(Intent.ACTION_SEND);
+                    sendIntent.setType("image/jpeg");
+                    sendIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(outputFile));
+                    startActivity(Intent.createChooser(sendIntent, getResources().getText(R.string.send_to)));
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -229,20 +236,31 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void applyFilters() {
-        PosterizeFilter quantizeFilter = new PosterizeFilter();
-        EdgeFilter edgeFilter = new EdgeFilter();
-        InvertFilter invertFilter = new InvertFilter();
-        GrayscaleFilter grayscaleFilter = new GrayscaleFilter();
-        int[] pixels = AndroidUtils.bitmapToIntArray(original);
-        int[] pixels2;
-        pixels2 = quantizeFilter.filter(AndroidUtils.bitmapToIntArray(original), original.getWidth(), original.getHeight());
-        pixels = grayscaleFilter.filter(pixels, original.getWidth(), original.getHeight());
-        pixels = edgeFilter.filter(pixels, original.getWidth(), original.getHeight());
-        pixels = invertFilter.filter(pixels, original.getWidth(), original.getHeight());
-        Bitmap tmp1 = Bitmap.createBitmap(pixels, 0, original.getWidth(), original.getWidth(), original.getHeight(), Bitmap.Config.ARGB_8888);
-        Bitmap tmp2 = Bitmap.createBitmap(pixels2, 0, original.getWidth(), original.getWidth(), original.getHeight(), Bitmap.Config.ARGB_8888);
-        original = combineWithOverlay(tmp1, tmp2);
+    private void applyFilters(int which) {
+        if (which==0) {
+            PosterizeFilter quantizeFilter = new PosterizeFilter();
+            EdgeFilter edgeFilter = new EdgeFilter();
+            InvertFilter invertFilter = new InvertFilter();
+            GrayscaleFilter grayscaleFilter = new GrayscaleFilter();
+            int[] pixels = AndroidUtils.bitmapToIntArray(original);
+            int[] pixels2;
+            pixels2 = quantizeFilter.filter(AndroidUtils.bitmapToIntArray(original), original.getWidth(), original.getHeight());
+            pixels = grayscaleFilter.filter(pixels, original.getWidth(), original.getHeight());
+            pixels = edgeFilter.filter(pixels, original.getWidth(), original.getHeight());
+            pixels = invertFilter.filter(pixels, original.getWidth(), original.getHeight());
+            Bitmap tmp1 = Bitmap.createBitmap(pixels, 0, original.getWidth(), original.getWidth(), original.getHeight(), Bitmap.Config.ARGB_8888);
+            Bitmap tmp2 = Bitmap.createBitmap(pixels2, 0, original.getWidth(), original.getWidth(), original.getHeight(), Bitmap.Config.ARGB_8888);
+            original = combineWithOverlay(tmp1, tmp2);
+        } else if (which==1) {
+            InvertFilter invertFilter = new InvertFilter();
+            GrayscaleFilter grayscaleFilter = new GrayscaleFilter();
+            EdgeFilter edgeFilter = new EdgeFilter();
+            int[] pixels = AndroidUtils.bitmapToIntArray(original);
+            pixels = grayscaleFilter.filter(pixels, original.getWidth(), original.getHeight());
+            pixels = edgeFilter.filter(pixels, original.getWidth(), original.getHeight());
+            pixels = invertFilter.filter(pixels, original.getWidth(), original.getHeight());
+            original = Bitmap.createBitmap(pixels, 0, original.getWidth(), original.getWidth(), original.getHeight(), Bitmap.Config.ARGB_8888);
+        }
         paintLines(original);
     }
 
@@ -265,16 +283,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void paintLines(Bitmap bitmap) {
+        if (bitmap==null) return;
         int w = bitmap.getWidth();
         int h = bitmap.getHeight();
 
-        Paint blackLine = new Paint();
-        blackLine.setColor(Color.BLACK);
-        blackLine.setAlpha(alpha);
+        Paint linePaint = new Paint();
+        linePaint.setColor(lineColors[this.lineColor]);
+        linePaint.setAlpha(alpha);
 
-        Paint whiteLine = new Paint();
-        whiteLine.setColor(Color.WHITE);
-        whiteLine.setAlpha(alpha);
 
         buffer = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
 
@@ -285,13 +301,13 @@ public class MainActivity extends AppCompatActivity {
         c.drawBitmap(bitmap, 0, 0, null);
         for (int i = 0; i < cols; i++) {
             for (int k = 0; k < lineWidth; k++) {
-                c.drawLine((i + 1) * w / (cols + 1) + k, 0, (i + 1) * w / (cols + 1) + k, h, k % 2 == 0 ? blackLine : whiteLine);
+                c.drawLine((i + 1) * w / (cols + 1) + k, 0, (i + 1) * w / (cols + 1) + k, h, linePaint);
             }
         }
 
         for (int i = 0; i < rows; i++) {
             for (int k = 0; k < lineWidth; k++) {
-                c.drawLine(0, (i + 1) * h / (rows + 1) + k, w, (i + 1) * h / (rows + 1) + k, k % 2 == 0 ? blackLine : whiteLine);
+                c.drawLine(0, (i + 1) * h / (rows + 1) + k, w, (i + 1) * h / (rows + 1) + k, linePaint );
             }
         }
 

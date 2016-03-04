@@ -1,18 +1,25 @@
 package at.juggle.imagegrid;
 
+import android.app.DialogFragment;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.SeekBar;
+import android.widget.Spinner;
+
 
 import at.juggle.artistgrid.R;
 
 public class DisplaySettingsActivity extends AppCompatActivity {
-    int cols, rows, lineWidth;
+    int cols, rows, lineWidth, lineColor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,13 +30,25 @@ public class DisplaySettingsActivity extends AppCompatActivity {
         rows = settings.getInt("rows", 4);
         cols = settings.getInt("cols", 3);
         lineWidth = settings.getInt("lineWidth", 3);
+        lineColor = settings.getInt("lineColor", 0);
         boolean colorpicker = settings.getBoolean("colorpicker", false);
 
         ((CheckBox) findViewById(R.id.editColorpicker)).setChecked(colorpicker);
         ((EditText) findViewById(R.id.editRows)).setText(rows + "");
-        ((EditText) findViewById(R.id.editCols)).setText(cols+"");
+        ((EditText) findViewById(R.id.editCols)).setText(cols + "");
         ((EditText) findViewById(R.id.editLineWidth)).setText(lineWidth + "");
-        ((EditText) findViewById(R.id.editLineAlpha)).setText(settings.getInt("lineAlpha", 128) + "");
+        ((SeekBar) findViewById(R.id.editLineAlpha)).setProgress(settings.getInt("lineAlpha", 128));
+
+        Spinner spinner = (Spinner) findViewById(R.id.color_spinner);
+        // Create an ArrayAdapter using the string array and a default spinner layout
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.colors_array, android.R.layout.simple_spinner_item);
+        // Specify the layout to use when the list of choices appears
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // Apply the adapter to the spinner
+        spinner.setAdapter(adapter);
+        spinner.setSelection(lineColor);
+
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.save_settings);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -49,6 +68,7 @@ public class DisplaySettingsActivity extends AppCompatActivity {
             }
         });
 
+
     }
 
     @Override
@@ -58,8 +78,9 @@ public class DisplaySettingsActivity extends AppCompatActivity {
         editor.putInt("rows", clamp(Integer.parseInt(((EditText) findViewById(R.id.editRows)).getText().toString()), 0, 50));
         editor.putInt("cols", clamp(Integer.parseInt(((EditText) findViewById(R.id.editCols)).getText().toString()), 0, 50));
         editor.putInt("lineWidth", clamp(Integer.parseInt(((EditText) findViewById(R.id.editLineWidth)).getText().toString()), 1, 16));
-        int alpha = Integer.parseInt(((EditText) findViewById(R.id.editLineAlpha)).getText().toString());
+        int alpha = ((SeekBar) findViewById(R.id.editLineAlpha)).getProgress();
         editor.putInt("lineAlpha", clamp(alpha, 0, 255));
+        editor.putInt("lineColor", ((Spinner) findViewById(R.id.color_spinner)).getSelectedItemPosition() );
         editor.putBoolean("colorpicker", ((CheckBox) findViewById(R.id.editColorpicker)).isChecked());
         editor.commit();
 //        Log.i(this.getClass().getName(), "written to prefs. .... " + Integer.parseInt(((EditText) findViewById(R.id.editRows)).getText().toString()));

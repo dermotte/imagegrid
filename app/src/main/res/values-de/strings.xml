@@ -13,6 +13,19 @@
     <string name="settings_activity_label">Einstellungen</string>
     <string name="action_fullscreen">Vollbild</string>
     <string name="action_grid">Raster ändern</string>
-    <string name="action_filter">Comicfilter</string>
-    <string name="label_lineAlpha">Transparenz (0-255)</string>
+    <string name="action_filter_comic">Comicfilter</string>
+    <string name="action_filter_edges">Kantenfilter</string>
+    <string name="label_lineAlpha">Transparenz</string>
+    <string name="label_linecolor">Farbe der Linien</string>
+    <string-array name="colors_array">
+        <item>Schwarz</item>
+        <item>Weiß</item>
+        <item>Rot</item>
+        <item>Grün</item>
+        <item>Blau</item>
+        <item>Cyan</item>
+        <item>Magenta</item>
+        <item>Gelb</item>
+    </string-array>
+    <string name="action_menu_filter">Bildfilter</string>
 </resources>
