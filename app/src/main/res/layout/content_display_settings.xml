@@ -10,11 +10,20 @@
     tools:context="at.juggle.imagegrid.DisplaySettingsActivity"
     tools:showIn="@layout/activity_display_settings">
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/header_settings_grid"
+        android:id="@+id/textView1"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="4dp" />
+
     <android.support.design.widget.TextInputLayout
         android:id="@+id/input_layout_cows"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp">
+        android:layout_marginTop="8dp">
 
         <EditText
             android:id="@+id/editRows"
@@ -36,16 +45,34 @@
             android:id="@+id/editCols"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/editRows"
+            android:layout_below="@id/editRows"
             android:ems="10"
             android:hint="@string/label_cols"
             android:inputType="number" />
     </android.support.design.widget.TextInputLayout>
 
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/label_square_grid"
+        android:id="@+id/checkSquareGrid"
+        android:layout_below="@id/editCols"
+        android:layout_marginTop="8dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/header_settings_line"
+        android:id="@+id/textView2"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="4dp"/>
+
     <android.support.design.widget.TextInputLayout
         android:id="@+id/input_layout_linewidth"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp">
 
         <EditText
             android:id="@+id/editLineWidth"
@@ -96,12 +123,21 @@
             android:layout_weight="0.6" />
     </LinearLayout>
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/header_settings_experimental"
+        android:id="@+id/textView"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="4dp"/>
+
     <CheckBox
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/label_colorpicker"
         android:id="@+id/editColorpicker"
         android:layout_below="@+id/editLineWidth"
-        android:layout_marginTop="16dp"/>
+        android:layout_marginTop="8dp"/>
 
 </LinearLayout>

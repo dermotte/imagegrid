@@ -8,8 +8,8 @@ android {
         applicationId "at.juggle.imagegrid"
         minSdkVersion 19
         targetSdkVersion 21
-        versionCode 19
-        versionName "3.0"
+        versionCode 20
+        versionName "3.1"
     }
     buildTypes {
         release {

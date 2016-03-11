@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.Spinner;
@@ -20,6 +21,7 @@ import at.juggle.artistgrid.R;
 
 public class DisplaySettingsActivity extends AppCompatActivity {
     int cols, rows, lineWidth, lineColor;
+    boolean squareGrid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,11 +33,14 @@ public class DisplaySettingsActivity extends AppCompatActivity {
         cols = settings.getInt("cols", 3);
         lineWidth = settings.getInt("lineWidth", 3);
         lineColor = settings.getInt("lineColor", 0);
+        squareGrid = settings.getBoolean("squareGrid", false);
         boolean colorpicker = settings.getBoolean("colorpicker", false);
 
         ((CheckBox) findViewById(R.id.editColorpicker)).setChecked(colorpicker);
+        ((CheckBox) findViewById(R.id.checkSquareGrid)).setChecked(squareGrid);
         ((EditText) findViewById(R.id.editRows)).setText(rows + "");
         ((EditText) findViewById(R.id.editCols)).setText(cols + "");
+        if (squareGrid) ((EditText) findViewById(R.id.editCols)).setEnabled(false);
         ((EditText) findViewById(R.id.editLineWidth)).setText(lineWidth + "");
         ((SeekBar) findViewById(R.id.editLineAlpha)).setProgress(settings.getInt("lineAlpha", 128));
 
@@ -68,6 +73,17 @@ public class DisplaySettingsActivity extends AppCompatActivity {
             }
         });
 
+        CheckBox squareGrid = (CheckBox) findViewById(R.id.checkSquareGrid);
+        squareGrid.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                EditText cols = (EditText) findViewById(R.id.editCols);
+                if (isChecked) {
+                    cols.setEnabled(false);
+                } else cols.setEnabled(true);
+            }
+        });
+
 
     }
 
@@ -80,8 +96,9 @@ public class DisplaySettingsActivity extends AppCompatActivity {
         editor.putInt("lineWidth", clamp(Integer.parseInt(((EditText) findViewById(R.id.editLineWidth)).getText().toString()), 1, 16));
         int alpha = ((SeekBar) findViewById(R.id.editLineAlpha)).getProgress();
         editor.putInt("lineAlpha", clamp(alpha, 0, 255));
-        editor.putInt("lineColor", ((Spinner) findViewById(R.id.color_spinner)).getSelectedItemPosition() );
+        editor.putInt("lineColor", ((Spinner) findViewById(R.id.color_spinner)).getSelectedItemPosition());
         editor.putBoolean("colorpicker", ((CheckBox) findViewById(R.id.editColorpicker)).isChecked());
+        editor.putBoolean("squareGrid", ((CheckBox) findViewById(R.id.checkSquareGrid)).isChecked());
         editor.commit();
 //        Log.i(this.getClass().getName(), "written to prefs. .... " + Integer.parseInt(((EditText) findViewById(R.id.editRows)).getText().toString()));
         super.onPause();

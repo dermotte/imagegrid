@@ -28,4 +28,8 @@
         <item>Gelb</item>
     </string-array>
     <string name="action_menu_filter">Bildfilter</string>
+    <string name="header_settings_experimental">Experimentell</string>
+    <string name="header_settings_grid">Rasterzellen</string>
+    <string name="header_settings_line">Rasterlinien</string>
+    <string name="label_square_grid">Quadratische Zellen</string>
 </resources>

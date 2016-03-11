@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
     public final static String IMG_CACHED = "image.png";
     int rows, cols, lineWidth, alpha;
     private int lineColor;
-    boolean colorpicker;
+    boolean colorpicker, squareGrid;
     Bitmap buffer = null, original = null;
     private float maxImageSide = 1200;
 
@@ -107,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
         alpha = settings.getInt("lineAlpha", 128);
         lineColor = settings.getInt("lineColor", 0);
         colorpicker = settings.getBoolean("colorpicker", false);
+        squareGrid = settings.getBoolean("squareGrid", false);
         TouchImageView view = (TouchImageView) findViewById(R.id.mainImageView);
         view.setMaxZoom(5f);
         view.setOnTouchListener(new ColorPickerOnTouchListener(view, this));
@@ -299,15 +300,26 @@ public class MainActivity extends AppCompatActivity {
 //        colorFilter.setColorFilter(new PorterDuffColorFilter(Color.GREEN, PorterDuff.Mode.LIGHTEN));
 //        colorFilter.setFilterBitmap(true);
         c.drawBitmap(bitmap, 0, 0, null);
-        for (int i = 0; i < cols; i++) {
-            for (int k = 0; k < lineWidth; k++) {
-                c.drawLine((i + 1) * w / (cols + 1) + k, 0, (i + 1) * w / (cols + 1) + k, h, linePaint);
+        int rowOffset = h / (rows + 1);
+        if (!squareGrid) {
+            for (int i = 0; i < cols; i++) {
+                for (int k = 0; k < lineWidth; k++) {
+                    c.drawLine((i + 1) * w / (cols + 1) + k, 0, (i + 1) * w / (cols + 1) + k, h, linePaint);
+                }
+            }
+        } else if (rows>0) {
+            int numColLines = w / rowOffset;
+            int offsetCols = (w%rowOffset)/2;
+            for (int i=0; i<= numColLines; i++) {
+                for (int k = 0; k < lineWidth; k++) {
+                    c.drawLine((i) * rowOffset + k + offsetCols, 0, (i) * rowOffset + k + offsetCols, h, linePaint);
+                }
             }
         }
 
         for (int i = 0; i < rows; i++) {
             for (int k = 0; k < lineWidth; k++) {
-                c.drawLine(0, (i + 1) * h / (rows + 1) + k, w, (i + 1) * h / (rows + 1) + k, linePaint );
+                c.drawLine(0, (i + 1) * rowOffset + k, w, (i + 1) * rowOffset + k, linePaint );
             }
         }
 
@@ -329,6 +341,7 @@ public class MainActivity extends AppCompatActivity {
         editor.putInt("lineWidth", lineWidth);
         editor.putInt("lineAlpha", alpha);
         editor.putBoolean("colorpicker", colorpicker);
+        editor.putBoolean("squareGrid", squareGrid);
         // Commit the edits!
         editor.commit();
     }
