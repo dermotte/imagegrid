@@ -2,6 +2,8 @@ package at.juggle.imagegrid;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapShader;
@@ -34,10 +36,15 @@ import com.jabistudio.androidjhlabs.filter.InvertFilter;
 import com.jabistudio.androidjhlabs.filter.PosterizeFilter;
 import com.jabistudio.androidjhlabs.filter.QuantizeFilter;
 import com.jabistudio.androidjhlabs.filter.util.AndroidUtils;
+import com.joanzapata.iconify.IconDrawable;
+import com.joanzapata.iconify.Iconify;
+import com.joanzapata.iconify.fonts.FontAwesomeIcons;
+import com.joanzapata.iconify.fonts.FontAwesomeModule;
 import com.ortiz.touchview.TouchImageView;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -63,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Iconify.with(new FontAwesomeModule());
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -75,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
         gridSize.add(new int[]{0, 0});
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setImageDrawable(new IconDrawable(this, FontAwesomeIcons.fa_folder_open).colorRes(R.color.colorPrimaryDark).actionBarSize());
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -91,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         final FloatingActionButton fabfull = (FloatingActionButton) findViewById(R.id.leaveFullscreenButton);
+        fabfull.setImageDrawable(new IconDrawable(this, FontAwesomeIcons.fa_chevron_down).colorRes(R.color.colorPrimaryDark).actionBarSize());
         fabfull.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -117,6 +127,11 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+        menu.findItem(R.id.action_share).setIcon(new IconDrawable(this, FontAwesomeIcons.fa_share).colorRes(R.color.colorWhite).actionBarSize());
+        menu.findItem(R.id.action_save).setIcon(new IconDrawable(this, FontAwesomeIcons.fa_save).colorRes(R.color.colorWhite).actionBarSize());
+        menu.findItem(R.id.action_fullscreen).setIcon(new IconDrawable(this, FontAwesomeIcons.fa_arrows_alt).colorRes(R.color.colorWhite).actionBarSize());
+        menu.findItem(R.id.action_grid).setIcon(new IconDrawable(this, FontAwesomeIcons.fa_th).colorRes(R.color.colorWhite).actionBarSize());
+        menu.findItem(R.id.action_menu_filter).setIcon(new IconDrawable(this, FontAwesomeIcons.fa_filter).colorRes(R.color.colorWhite).actionBarSize());
         return true;
     }
 
@@ -152,6 +167,10 @@ public class MainActivity extends AppCompatActivity {
             if (original!=null) applyFilters(0);
         } else if (id == R.id.action_filter_edges) {
             if (original!=null) applyFilters(1);
+        } else if (id == R.id.action_filter_gray) {
+            if (original!=null) applyFilters(2);
+        } else if (id == R.id.action_filter_reset) {
+            if (original!=null) applyFilters(3);
         } else if (id == R.id.action_fullscreen) {
             // hide status bar
             View decorView = getWindow().getDecorView();
@@ -238,7 +257,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void applyFilters(int which) {
-        if (which==0) {
+        if (which==0) { // comic
             PosterizeFilter quantizeFilter = new PosterizeFilter();
             EdgeFilter edgeFilter = new EdgeFilter();
             InvertFilter invertFilter = new InvertFilter();
@@ -252,7 +271,7 @@ public class MainActivity extends AppCompatActivity {
             Bitmap tmp1 = Bitmap.createBitmap(pixels, 0, original.getWidth(), original.getWidth(), original.getHeight(), Bitmap.Config.ARGB_8888);
             Bitmap tmp2 = Bitmap.createBitmap(pixels2, 0, original.getWidth(), original.getWidth(), original.getHeight(), Bitmap.Config.ARGB_8888);
             original = combineWithOverlay(tmp1, tmp2);
-        } else if (which==1) {
+        } else if (which==1) { // edges only
             InvertFilter invertFilter = new InvertFilter();
             GrayscaleFilter grayscaleFilter = new GrayscaleFilter();
             EdgeFilter edgeFilter = new EdgeFilter();
@@ -261,6 +280,21 @@ public class MainActivity extends AppCompatActivity {
             pixels = edgeFilter.filter(pixels, original.getWidth(), original.getHeight());
             pixels = invertFilter.filter(pixels, original.getWidth(), original.getHeight());
             original = Bitmap.createBitmap(pixels, 0, original.getWidth(), original.getWidth(), original.getHeight(), Bitmap.Config.ARGB_8888);
+        } else if (which==2) { // black & white
+            GrayscaleFilter grayscaleFilter = new GrayscaleFilter();
+            int[] pixels = AndroidUtils.bitmapToIntArray(original);
+            pixels = grayscaleFilter.filter(pixels, original.getWidth(), original.getHeight());
+            original = Bitmap.createBitmap(pixels, 0, original.getWidth(), original.getWidth(), original.getHeight(), Bitmap.Config.ARGB_8888);
+        } else if (which==3) { // reset ..
+            File file = new File(getApplicationContext().getFilesDir(), IMG_CACHED);
+            if (file.exists()) {
+                try {
+                    original = BitmapFactory.decodeStream(new FileInputStream(file));
+                    paintLines(original);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         paintLines(original);
     }

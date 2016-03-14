@@ -32,4 +32,6 @@
     <string name="header_settings_grid">Rasterzellen</string>
     <string name="header_settings_line">Rasterlinien</string>
     <string name="label_square_grid">Quadratische Zellen</string>
+    <string name="action_filter_gray">Schwarz-Weiß</string>
+    <string name="action_filter_reset">Zurücksetzen</string>
 </resources>

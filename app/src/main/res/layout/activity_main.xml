@@ -33,7 +33,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
-        android:background="@color/colorAccent"
+        app:backgroundTint="@color/colorPrimaryLight"
         android:alpha="128"
         android:src="@android:drawable/ic_menu_gallery" />
     <android.support.design.widget.FloatingActionButton
@@ -42,7 +42,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|start"
         android:layout_margin="@dimen/fab_margin"
-        android:background="@color/colorAccent"
+        app:backgroundTint="@color/colorPrimaryLight"
         android:alpha="128"
         android:visibility="invisible"
         android:src="@android:drawable/ic_menu_more" />

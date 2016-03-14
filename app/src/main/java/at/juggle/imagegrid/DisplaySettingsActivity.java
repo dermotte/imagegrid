@@ -17,6 +17,11 @@ import android.widget.SeekBar;
 import android.widget.Spinner;
 
 
+import com.joanzapata.iconify.IconDrawable;
+import com.joanzapata.iconify.Iconify;
+import com.joanzapata.iconify.fonts.FontAwesomeIcons;
+import com.joanzapata.iconify.fonts.FontAwesomeModule;
+
 import at.juggle.artistgrid.R;
 
 public class DisplaySettingsActivity extends AppCompatActivity {
@@ -26,6 +31,7 @@ public class DisplaySettingsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Iconify.with(new FontAwesomeModule());
         setContentView(R.layout.activity_display_settings);
 
         SharedPreferences settings = getSharedPreferences(MainActivity.PREFS_NAME, MODE_PRIVATE);
@@ -56,6 +62,8 @@ public class DisplaySettingsActivity extends AppCompatActivity {
 
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.save_settings);
+        fab.setImageDrawable(new IconDrawable(this, FontAwesomeIcons.fa_save).colorRes(R.color.colorPrimaryDark).actionBarSize());
+
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

@@ -13,7 +13,7 @@
     <string name="action_fullscreen">Full screen</string>
     <string name="action_grid">Change grid</string>
     <string name="action_filter_comic">Posterize</string>
-    <string name="action_filter_edges">Posterize</string>
+    <string name="action_filter_edges">Edges</string>
     <string name="label_lineAlpha">Opaqueness</string>
     <string name="label_linecolor">Grid line color</string>
     <string name="action_menu_filter">Filter</string>
@@ -21,6 +21,8 @@
     <string name="header_settings_grid">Grid cells</string>
     <string name="header_settings_line">Grid lines</string>
     <string name="header_settings_experimental">Experimental</string>
+    <string name="action_filter_gray">Black and White</string>
+    <string name="action_filter_reset">Reset filters</string>
     <string-array name="colors_array">
         <item>black</item>
         <item>white</item>
