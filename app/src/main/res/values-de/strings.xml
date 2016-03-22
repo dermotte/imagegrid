@@ -34,4 +34,5 @@
     <string name="label_square_grid">Quadratische Zellen</string>
     <string name="action_filter_gray">Schwarz-Weiß</string>
     <string name="action_filter_reset">Zurücksetzen</string>
+    <string name="label_savefileonexit">Bild immer speichern</string>
 </resources>

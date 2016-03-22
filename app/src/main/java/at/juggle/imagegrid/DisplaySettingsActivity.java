@@ -41,8 +41,10 @@ public class DisplaySettingsActivity extends AppCompatActivity {
         lineColor = settings.getInt("lineColor", 0);
         squareGrid = settings.getBoolean("squareGrid", false);
         boolean colorpicker = settings.getBoolean("colorpicker", false);
+        boolean savefileonexit = settings.getBoolean("savefileonexit", true);
 
         ((CheckBox) findViewById(R.id.editColorpicker)).setChecked(colorpicker);
+        // ((CheckBox) findViewById(R.id.editSavefileonexit)).setChecked(savefileonexit);
         ((CheckBox) findViewById(R.id.checkSquareGrid)).setChecked(squareGrid);
         ((EditText) findViewById(R.id.editRows)).setText(rows + "");
         ((EditText) findViewById(R.id.editCols)).setText(cols + "");
@@ -106,6 +108,7 @@ public class DisplaySettingsActivity extends AppCompatActivity {
         editor.putInt("lineAlpha", clamp(alpha, 0, 255));
         editor.putInt("lineColor", ((Spinner) findViewById(R.id.color_spinner)).getSelectedItemPosition());
         editor.putBoolean("colorpicker", ((CheckBox) findViewById(R.id.editColorpicker)).isChecked());
+        // editor.putBoolean("savefileonexit", ((CheckBox) findViewById(R.id.editSavefileonexit)).isChecked());
         editor.putBoolean("squareGrid", ((CheckBox) findViewById(R.id.checkSquareGrid)).isChecked());
         editor.commit();
 //        Log.i(this.getClass().getName(), "written to prefs. .... " + Integer.parseInt(((EditText) findViewById(R.id.editRows)).getText().toString()));

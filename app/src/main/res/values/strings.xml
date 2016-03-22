@@ -23,6 +23,7 @@
     <string name="header_settings_experimental">Experimental</string>
     <string name="action_filter_gray">Black and White</string>
     <string name="action_filter_reset">Reset filters</string>
+    <string name="label_savefileonexit">Save image file on exit</string>
     <string-array name="colors_array">
         <item>black</item>
         <item>white</item>
