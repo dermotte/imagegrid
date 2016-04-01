@@ -57,9 +57,10 @@ public class MainActivity extends AppCompatActivity {
     private static int RESULT_SETTINGS_ACTIVITY = 2;
     public final static String PREFS_NAME = "PrefsFileArtistGrid";
     public final static String IMG_CACHED = "image.png";
+    public final static String IMG_CACHED_FILTERED = "image_filtered.png";
     int rows, cols, lineWidth, alpha;
     private int lineColor;
-    boolean colorpicker, squareGrid;
+    boolean colorpicker, squareGrid, saveFileOnExit;
     Bitmap buffer = null, original = null;
     private float maxImageSide = 1200;
 
@@ -118,6 +119,7 @@ public class MainActivity extends AppCompatActivity {
         alpha = settings.getInt("lineAlpha", 128);
         lineColor = settings.getInt("lineColor", 0);
         colorpicker = settings.getBoolean("colorpicker", false);
+        saveFileOnExit = settings.getBoolean("savefileonexit", true);
         squareGrid = settings.getBoolean("squareGrid", false);
         TouchImageView view = (TouchImageView) findViewById(R.id.mainImageView);
         view.setMaxZoom(5f);
@@ -393,8 +395,18 @@ public class MainActivity extends AppCompatActivity {
         editor.putInt("lineAlpha", alpha);
         editor.putBoolean("colorpicker", colorpicker);
         editor.putBoolean("squareGrid", squareGrid);
+        editor.putBoolean("savefileonexit", saveFileOnExit);
         // Commit the edits!
         editor.commit();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (!saveFileOnExit) {
+            File file = new File(getApplicationContext().getFilesDir(), IMG_CACHED);
+            if (file.exists()) file.delete();
+        }
+        super.onDestroy();
     }
 
     @Override
