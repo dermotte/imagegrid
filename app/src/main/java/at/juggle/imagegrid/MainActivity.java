@@ -74,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setIcon(R.mipmap.ic_launcher);
 
         gridSize.add(new int[]{3, 4});
@@ -121,6 +122,18 @@ public class MainActivity extends AppCompatActivity {
         TouchImageView view = (TouchImageView) findViewById(R.id.mainImageView);
         view.setMaxZoom(5f);
         view.setOnTouchListener(new ColorPickerOnTouchListener(view, this));
+
+        // Get the intent that started this activity
+        Intent intent = getIntent();
+        // Figure out what to do based on the intent type
+        if (intent != null && intent.getType()!=null && intent.getType().indexOf("image/") != -1) {
+            Uri data = intent.getData();
+            if (data == null) data = intent.getClipData().getItemAt(0).getUri();
+            if (data !=null ) openImage(data);
+            else {
+                Toast.makeText(getApplicationContext(), "Error: Could not open image!", Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     @Override
@@ -231,28 +244,32 @@ public class MainActivity extends AppCompatActivity {
 
         if (requestCode == RESULT_LOAD_IMAGE && resultCode == RESULT_OK && null != data) {
             Uri selectedImage = data.getData();
-            try {
-                original = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
-                File file = new File(getApplicationContext().getFilesDir(), IMG_CACHED);
-                if (file.exists()) file.delete();
-                OutputStream out = new FileOutputStream(file);
-                int w = original.getWidth();
-                int h = original.getHeight();
-                if (Math.max(w, h) > maxImageSide) {
-                    float scalefactor = 1f;
-                    if (h > w) {
-                        scalefactor = maxImageSide / h;
-                    } else scalefactor = maxImageSide / w;
-                    original = Bitmap.createScaledBitmap(original, (int) (scalefactor * w), (int) (scalefactor * h), true);
-                }
-                original.compress(Bitmap.CompressFormat.PNG, 100, out);
-                out.flush();
-                out.close();
-                paintLines(original);
-            } catch (IOException e) {
-                e.printStackTrace();
-                Toast.makeText(getApplicationContext(), "Cannot open " + selectedImage.getPath() + "!", Toast.LENGTH_LONG).show();
+            openImage(selectedImage);
+        }
+    }
+
+    private void openImage(Uri selectedImage) {
+        try {
+            original = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
+            File file = new File(getApplicationContext().getFilesDir(), IMG_CACHED);
+            if (file.exists()) file.delete();
+            OutputStream out = new FileOutputStream(file);
+            int w = original.getWidth();
+            int h = original.getHeight();
+            if (Math.max(w, h) > maxImageSide) {
+                float scalefactor = 1f;
+                if (h > w) {
+                    scalefactor = maxImageSide / h;
+                } else scalefactor = maxImageSide / w;
+                original = Bitmap.createScaledBitmap(original, (int) (scalefactor * w), (int) (scalefactor * h), true);
             }
+            original.compress(Bitmap.CompressFormat.PNG, 100, out);
+            out.flush();
+            out.close();
+            paintLines(original);
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(getApplicationContext(), "Cannot open " + selectedImage.getPath() + "!", Toast.LENGTH_LONG).show();
         }
     }
 
