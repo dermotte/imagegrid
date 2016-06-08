@@ -362,7 +362,7 @@ public class MainActivity extends AppCompatActivity {
             }
         } else if (rows>0) {
             int numColLines = w / rowOffset;
-            int offsetCols = (w%rowOffset)/2;
+            int offsetCols = (w%rowOffset)/2; // todo: make configurable ("where image starts")
             for (int i=0; i<= numColLines; i++) {
                 for (int k = 0; k < lineWidth; k++) {
                     c.drawLine((i) * rowOffset + k + offsetCols, 0, (i) * rowOffset + k + offsetCols, h, linePaint);
