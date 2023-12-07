@@ -16,6 +16,34 @@ How to compile it
 -----------------
 Import into Android studio or use Gradle.
 
+Privacy Policy
+--------------
+We respect your privacy and are committed to protecting it. This Privacy Policy explains our practices regarding the collection, use, and disclosure of information that we receive when you use our Service.
+
+### Information We Do Not Collect
+
+At [Your App Name], we believe in keeping your personal information personal. We do not collect any personal data from our users. This means that we do not collect information such as your name, address, phone number, email address, or any other personally identifiable information.
+
+### No Cookies and Tracking
+
+We do not use cookies or any tracking technologies to track your use of our app.
+
+### No Third-Party Sharing
+
+Since we do not collect any personal data, we have no information to share or sell to third parties.
+
+### Data Security
+
+While we do not collect personal information, we still take the security of our app seriously. [Your App Name] is designed with security measures in place to ensure that any data within the app remains protected against unauthorized access and disclosure.
+
+### Changes to This Privacy Policy
+
+We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page. You are advised to review this Privacy Policy periodically for any changes.
+
+### Contact Us
+
+If you have any questions about this Privacy Policy, don't hesitate to get in touch with us here on Github.
+
 License
 -------
 
